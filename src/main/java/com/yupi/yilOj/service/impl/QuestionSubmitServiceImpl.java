@@ -8,6 +8,8 @@ import com.yupi.yilOj.model.dto.questionsubmit.QuestionSubmitAddRequest;
 import com.yupi.yilOj.model.entity.Question;
 import com.yupi.yilOj.model.entity.QuestionSubmit;
 import com.yupi.yilOj.model.entity.User;
+import com.yupi.yilOj.model.enums.QuestionSubmitLanguageEnum;
+import com.yupi.yilOj.model.enums.QuestionSubmitStatusEnum;
 import com.yupi.yilOj.service.QuestionService;
 import com.yupi.yilOj.service.QuestionSubmitService;
 import com.yupi.yilOj.mapper.QuestionSubmitMapper;
@@ -39,6 +41,12 @@ public class QuestionSubmitServiceImpl extends ServiceImpl<QuestionSubmitMapper,
      */
     @Override
     public Long doQuestionSubmit(QuestionSubmitAddRequest questionSubmitAddRequest, User loginUser) {
+        //校验编程语言是否合法
+        String language = questionSubmitAddRequest.getLanguage();
+        QuestionSubmitLanguageEnum enumByValue = QuestionSubmitLanguageEnum.getEnumByValue(language);
+        if (enumByValue==null){
+            throw  new BusinessException(ErrorCode.PARAMS_ERROR,"编程语言错误");
+        }
         Long questionId = questionSubmitAddRequest.getQuestionId();
         // 判断实体是否存在，根据类别获取实体
         Question question = questionService.getById(questionId);
@@ -57,7 +65,7 @@ public class QuestionSubmitServiceImpl extends ServiceImpl<QuestionSubmitMapper,
         //用户所使用的代码语言
         questionSubmit.setLanguage(questionSubmitAddRequest.getLanguage());
         //todo 设置初始状态
-        questionSubmit.setStatus();
+        questionSubmit.setStatus(QuestionSubmitStatusEnum.WAITING.getValue());
         questionSubmit.setJudgeInfo("{}");
         boolean save = this.save(questionSubmit);
         if (!save){
